@@ -205,7 +205,7 @@ describe("row level security and visibility", () => {
     );
     const { rows } = await as(null, () => db.query<{ slug: string; quantity: number; in_use: number }>(`select * from public.public_availability()`));
     expect(rows.find((r) => r.slug === "windsurf")).toEqual({ slug: "windsurf", quantity: 10, in_use: 1 });
-    expect(rows.map((r) => r.slug)).toEqual(["laser-pico", "kielboot", "waterfiets", "sup", "windsurf"]);
+    expect(rows.map((r) => r.slug)).toEqual(["laser-pico", "optimist", "kielboot", "waterfiets", "sup", "windsurf"]);
     const summary = await as(null, () => db.query<{ on_water: number }>(`select * from public.club_summary()`));
     expect(summary.rows[0]!.on_water).toBe(1);
     const anonRows = await as(null, () => db.query(`select * from public.reservations`));

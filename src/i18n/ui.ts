@@ -3,7 +3,7 @@ export type Lang = (typeof LANGS)[number];
 export const DEFAULT_LANG: Lang = "nl";
 
 const nl = {
-  "meta.description": "Reserveer een Laser Pico, kielboot, waterfiets, supboard of windsurfplank bij WSA op De Poel.",
+  "meta.description": "Reserveer een Laser Pico, Optimist, kielboot, waterfiets, supboard of windsurfplank bij WSA op De Poel.",
   "nav.home": "Home",
   "nav.reserve": "Reserveren",
   "nav.my": "Mijn reserveringen",
@@ -20,7 +20,7 @@ const nl = {
 
   "hero.kicker": "Water Sportvereniging Amstelveen",
   "hero.title": "Boot of board? Reserveer en ga het water op.",
-  "hero.text": "Laser Pico's, kielboten, waterfietsen, supboards en windsurfplanken op De Poel. Maximaal 3 uur per keer, voor vandaag of morgen.",
+  "hero.text": "Laser Pico's, Optimisten voor de jeugd, kielboten, waterfietsen, supboards en windsurfplanken op De Poel. Maximaal 3 uur per keer, voor vandaag of morgen.",
   "hero.cta": "Reserveer nu",
   "hero.route": "Route naar de club",
 
@@ -218,7 +218,7 @@ const nl = {
 export type UIKey = keyof typeof nl;
 
 const en: Record<UIKey, string> = {
-  "meta.description": "Book a Laser Pico, keelboat, pedal boat, SUP board or windsurf board at WSA on De Poel.",
+  "meta.description": "Book a Laser Pico, Optimist, keelboat, pedal boat, SUP board or windsurf board at WSA on De Poel.",
   "nav.home": "Home",
   "nav.reserve": "Book",
   "nav.my": "My bookings",
@@ -235,7 +235,7 @@ const en: Record<UIKey, string> = {
 
   "hero.kicker": "Water Sportvereniging Amstelveen",
   "hero.title": "Boat or board? Book it and get on the water.",
-  "hero.text": "Laser Picos, keelboats, pedal boats, SUP boards and windsurf boards on De Poel. Up to 3 hours at a time, for today or tomorrow.",
+  "hero.text": "Laser Picos, Optimists for the kids, keelboats, pedal boats, SUP boards and windsurf boards on De Poel. Up to 3 hours at a time, for today or tomorrow.",
   "hero.cta": "Book now",
   "hero.route": "Directions to the club",
 

@@ -17,6 +17,15 @@ export default function EquipmentIcon({ icon, className, title }: Props) {
           <path d="M2 22 q2.5 -1.5 5 0 t5 0 t5 0 t5 0" />
         </g>
       )}
+      {icon === "optimist" && (
+        <g {...common}>
+          <path d="M9 4v13" />
+          <path d="M9 5 L17 3 L18 14 H9" />
+          <path d="M9 14 L17 3.5" />
+          <path d="M5 17 H19 V19 H6 Z" />
+          <path d="M2 22 q2.5 -1.5 5 0 t5 0 t5 0 t5 0" />
+        </g>
+      )}
       {icon === "keelboat" && (
         <g {...common}>
           <path d="M11 2v14" />
@@ -52,7 +61,7 @@ export default function EquipmentIcon({ icon, className, title }: Props) {
           <path d="M3 18 H21 q-1 2 -3 2 H6 q-2 0 -3 -2 Z" />
         </g>
       )}
-      {!["dinghy", "keelboat", "pedalboat", "sup", "windsurf"].includes(icon) && (
+      {!["dinghy", "optimist", "keelboat", "pedalboat", "sup", "windsurf"].includes(icon) && (
         <g {...common}>
           <path d="M3 15 H21 L18 20 H6 Z" />
           <path d="M12 3 v12 M12 4 l6 9 h-6" />

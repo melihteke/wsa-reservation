@@ -19,6 +19,7 @@ This guide takes the site from this repository to a live booking system:
       Run it **as a separate query**: Postgres can't use a new role value in the same run that adds it.
    4. [`supabase/migrations/0004_superadmin.sql`](../supabase/migrations/0004_superadmin.sql): super admin rules. It also makes
       `melihteke@gmail.com` the first super admin, whether that account already exists or signs in later.
+   5. [`supabase/migrations/0005_optimist.sql`](../supabase/migrations/0005_optimist.sql): adds 6 Optimists (children's dinghy).
 
    With the Supabase CLI you can run `supabase link --project-ref <ref>` and then `supabase db push` instead.
 3. **First super admin.** `0004_superadmin.sql` already sets this up for `melihteke@gmail.com`. To use another email,

@@ -13,7 +13,7 @@ data and handles login.
   - *Admins* manage members and other admins, see statistics (per member × equipment, hours, CSV export) and change the rules.
   - *Super admins* (first one: melihteke@gmail.com) can also create other super admins. Nobody can block, delete or
     change a super admin from the site.
-- **Fleet:** 6 Laser Pico · 2 kielboten · 10 waterfietsen · 10 supboards · 10 windsurfplanken.
+- **Fleet:** 6 Laser Pico · 6 Optimisten (jeugd) · 2 kielboten · 10 waterfietsen · 10 supboards · 10 windsurfplanken.
 - **Booking rules** are enforced in Postgres, so the front-end can't bypass them:
   - Bookings last at most **3 hours**, in 30-minute steps.
   - People can book for **today or tomorrow** (Europe/Amsterdam), within opening hours (09:00–21:00 by default;

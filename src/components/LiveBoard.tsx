@@ -62,7 +62,7 @@ export default function LiveBoard({ lang }: { lang: Lang }) {
         </div>
       </div>
 
-      <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {fleet.map((e) => {
           const used = inUse(e.slug);
           const free = Math.max(e.quantity - used, 0);

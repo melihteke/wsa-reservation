@@ -171,7 +171,7 @@ function ReserveForm({ lang, profile }: { lang: Lang; profile: Profile }) {
       <form onSubmit={submit} className={cn("space-y-6", blocked && "pointer-events-none opacity-50")} aria-disabled={blocked}>
         <fieldset>
           <legend className="text-sm font-semibold">{t("reserve.equipment")}</legend>
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {fleet.map((e) => {
               const free = freeNow(e.slug);
               const active = equipment === e.slug;
