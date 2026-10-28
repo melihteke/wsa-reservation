@@ -15,16 +15,20 @@ This guide takes the site from this repository to a live booking system:
    1. [`supabase/migrations/0001_schema.sql`](../supabase/migrations/0001_schema.sql): tables, row level security, fleet seed
       (6 Laser Pico, 2 kielboten, 10 waterfietsen, 10 supboards, 10 windsurfplanken) and opening hours 09:00–21:00.
    2. [`supabase/migrations/0002_functions.sql`](../supabase/migrations/0002_functions.sql): booking rules and admin functions.
+   3. [`supabase/migrations/0003_superadmin_role.sql`](../supabase/migrations/0003_superadmin_role.sql): adds the super admin role.
+      Run it **as a separate query**: Postgres can't use a new role value in the same run that adds it.
+   4. [`supabase/migrations/0004_superadmin.sql`](../supabase/migrations/0004_superadmin.sql): super admin rules. It also makes
+      `melihteke@gmail.com` the first super admin, whether that account already exists or signs in later.
 
    With the Supabase CLI you can run `supabase link --project-ref <ref>` and then `supabase db push` instead.
-3. **Make yourself the first admin.** Run this *before* you sign in for the first time:
+3. **First super admin.** `0004_superadmin.sql` already sets this up for `melihteke@gmail.com`. To use another email,
+   run this:
 
    ```sql
-   insert into public.allowed_emails (email, role) values ('your.email@gmail.com', 'admin');
+   insert into public.allowed_emails (email, role) values ('your.email@gmail.com', 'superadmin')
+   on conflict (email) do update set role = 'superadmin';
+   update public.profiles set role = 'superadmin', status = 'approved' where lower(email) = 'your.email@gmail.com';
    ```
-
-   If you already signed in, run this instead:
-   `update public.profiles set role = 'admin', status = 'approved' where email = 'your.email@gmail.com';`
 4. **Database → Publications → `supabase_realtime`**: check that `reservations` is listed. The migration adds it,
    and the live board uses it.
 5. **Project Settings → API**: copy the **Project URL** and the **anon / publishable key**. Both are public by design,
@@ -72,13 +76,13 @@ Enable each provider under **Authentication → Sign In / Providers** and paste 
 4. **App settings → Basic**. Facebook won't let the app go Live ("Currently ineligible for submission") until
    these fields are filled in:
 
-   | Field                    | Value                                                                                             |
-   | ------------------------ | ------------------------------------------------------------------------------------------------- |
-   | App domains              | `mteke.com`                                                                                       |
-   | App icon (1024 x 1024)   | Upload [`docs/app-icon-1024.png`](app-icon-1024.png)                                              |
-   | Privacy policy URL       | `https://wsa-reservation.mteke.com/privacy/`                                                      |
-   | User data deletion       | Choose **Data deletion instructions URL**, then `https://wsa-reservation.mteke.com/data-deletion/`. Keep the trailing `/`: without it GitHub Pages answers with a redirect, which Meta rejects. Meta also rejects the privacy URL here |
-   | Category                 | **Lifestyle** (or **Sports** if it is in the list)                                                |
+   | Field                  | Value                                                                                                                                                                                                                                            |
+   | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+   | App domains            | `mteke.com`                                                                                                                                                                                                                                    |
+   | App icon (1024 x 1024) | Upload [`docs/app-icon-1024.png`](app-icon-1024.png)                                                                                                                                                                                            |
+   | Privacy policy URL     | `https://wsa-reservation.mteke.com/privacy/`                                                                                                                                                                                                   |
+   | User data deletion     | Choose **Data deletion instructions URL**, then `https://wsa-reservation.mteke.com/data-deletion/`. Keep the trailing `/`: without it GitHub Pages answers with a redirect, which Meta rejects. Meta also rejects the privacy URL here |
+   | Category               | **Lifestyle** (or **Sports** if it is in the list)                                                                                                                                                                                   |
 
    Click **Save changes**. Facebook opens both URLs to check them, so wait until the site's HTTPS certificate works
    (**Enforce HTTPS** can be ticked in GitHub Pages) before you save them.
@@ -121,13 +125,25 @@ Optionally, verify the domain under GitHub → **Settings → Pages → Verified
 
 ## 6. Daily use
 
+- **Roles:**
+
+  | Role                  | Can do                                                                                                                                                                                               |
+  | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | **Member**      | Book (one at a time), cancel or end their own booking, see who is on the water.                                                                                                                      |
+  | **Admin**       | Everything a member can, plus: approve, block or delete members **and other admins**, make members admins, see statistics, change settings.                                                    |
+  | **Super admin** | Everything an admin can, plus: create other **super admins**. Nobody can block, delete or change a super admin, and admins can't cancel a super admin's bookings or remove their pre-approval. |
+
+  A super admin can only be changed or removed in the Supabase SQL editor.
 - **New members** sign in with Google, Facebook or GitHub and land on *Wacht op goedkeuring*.
+
   - An admin approves them under **Beheer → Leden**.
   - An admin can also pre-approve an email address under **E-mail vooraf goedkeuren**, so that person gets access right away.
 - **Remove someone:**
+
   - **Blokkeren** keeps the member's history for the statistics and cancels their upcoming bookings.
   - **Verwijderen** deletes the login, the profile and all of the member's bookings.
 - **Rules** are set under **Beheer → Instellingen**:
+
   - Opening hours, maximum duration and how many days ahead people can book.
   - Fleet size: you can also take equipment out of service.
 

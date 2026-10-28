@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Check, Search, ShieldCheck, Trash2, UserPlus, X } from "lucide-react";
+import { Check, Lock, Search, Trash2, UserPlus, X } from "lucide-react";
 import { Avatar } from "@/components/AuthNav";
 import { displayName } from "@/lib/auth";
 import { formatDate } from "@/lib/data";
@@ -25,9 +25,12 @@ export function Badge({ children, tone }: { children: React.ReactNode; tone: "gr
 }
 
 const STATUS_TONE: Record<Status, "green" | "amber" | "red"> = { approved: "green", pending: "amber", blocked: "red" };
+const ROLE_TONE: Record<Role, "blue" | "amber" | "muted"> = { superadmin: "amber", admin: "blue", member: "muted" };
 
 export default function AdminMembers({ lang, me }: { lang: Lang; me: Profile }) {
   const t = useTranslations(lang);
+  const iAmSuper = me.role === "superadmin";
+  const grantable: Role[] = iAmSuper ? ["member", "admin", "superadmin"] : ["member", "admin"];
   const [profiles, setProfiles] = React.useState<Profile[]>([]);
   const [allowed, setAllowed] = React.useState<Allowed[]>([]);
   const [query, setQuery] = React.useState("");
@@ -139,7 +142,7 @@ export default function AdminMembers({ lang, me }: { lang: Lang; me: Profile }) 
                   <div className="min-w-0 flex-1">
                     <p className="flex flex-wrap items-center gap-1.5 text-sm font-medium">
                       <span className="truncate">{displayName(p)}</span>
-                      {p.role === "admin" && <Badge tone="blue">{t("admin.role.admin")}</Badge>}
+                      {p.role !== "member" && <Badge tone={ROLE_TONE[p.role]}>{t(`admin.role.${p.role}`)}</Badge>}
                       <Badge tone={STATUS_TONE[p.status]}>{t(`admin.status.${p.status}`)}</Badge>
                       {self && <Badge tone="muted">{t("admin.you")}</Badge>}
                     </p>
@@ -147,15 +150,31 @@ export default function AdminMembers({ lang, me }: { lang: Lang; me: Profile }) 
                       {p.email} · {p.provider ?? "?"} · {t("admin.joined", { date: date(p.created_at) })}
                     </p>
                   </div>
-                  {!self && (
-                    <div className="flex flex-wrap gap-1.5">
+                  {!self && p.role === "superadmin" && (
+                    <span className={cn(btn, "border-amber-500/40 text-amber-700 dark:text-amber-300")} title={t("admin.protectedHint")}>
+                      <Lock className="h-3.5 w-3.5" /> {t("admin.protected")}
+                    </span>
+                  )}
+                  {!self && p.role !== "superadmin" && (
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {p.status === "approved" && (
-                        <button type="button" disabled={busy === p.id} onClick={() => update(p, p.role === "admin" ? "member" : "admin", "approved")} className={cn(btn, "border-border")}>
-                          <ShieldCheck className="h-3.5 w-3.5" /> {p.role === "admin" ? t("admin.makeMember") : t("admin.makeAdmin")}
-                        </button>
+                        <select
+                          value={p.role}
+                          disabled={busy === p.id}
+                          aria-label={`${t("admin.changeRole")}: ${displayName(p)}`}
+                          title={t("admin.changeRole")}
+                          onChange={(e) => update(p, e.target.value as Role, "approved")}
+                          className="h-7 rounded-full border border-border bg-background px-2 text-xs font-medium"
+                        >
+                          {grantable.map((r) => (
+                            <option key={r} value={r}>
+                              {t(`admin.role.${r}`)}
+                            </option>
+                          ))}
+                        </select>
                       )}
                       {p.status === "approved" ? (
-                        <button type="button" disabled={busy === p.id} onClick={() => update(p, "member", "blocked")} className={cn(btn, "border-destructive/40 text-destructive")}>
+                        <button type="button" disabled={busy === p.id} onClick={() => update(p, p.role, "blocked")} className={cn(btn, "border-destructive/40 text-destructive")}>
                           {t("admin.block")}
                         </button>
                       ) : (
@@ -215,8 +234,11 @@ export default function AdminMembers({ lang, me }: { lang: Lang; me: Profile }) 
                   onChange={(e) => setForm({ ...form, role: e.target.value as Role })}
                   className="h-9 flex-1 rounded-lg border border-input bg-background px-2 text-sm"
                 >
-                  <option value="member">{t("admin.role.member")}</option>
-                  <option value="admin">{t("admin.role.admin")}</option>
+                  {grantable.map((r) => (
+                    <option key={r} value={r}>
+                      {t(`admin.role.${r}`)}
+                    </option>
+                  ))}
                 </select>
                 <button type="submit" disabled={busy === "add"} className="h-9 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50">
                   {t("admin.add")}
@@ -240,6 +262,9 @@ export default function AdminMembers({ lang, me }: { lang: Lang; me: Profile }) 
                         {t(`admin.role.${a.role}`)}
                       </p>
                     </div>
+                    {a.role === "superadmin" && !iAmSuper ? (
+                      <Lock className="h-4 w-4 text-amber-600" aria-label={t("admin.protected")} />
+                    ) : (
                     <button
                       type="button"
                       disabled={busy === a.email}
@@ -249,6 +274,7 @@ export default function AdminMembers({ lang, me }: { lang: Lang; me: Profile }) 
                     >
                       <X className="h-4 w-4" />
                     </button>
+                    )}
                   </li>
                 ))}
               </ul>

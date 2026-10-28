@@ -8,9 +8,11 @@ data and handles login.
 
 - **Login with Google, Facebook or GitHub.** A login only gives access once an admin has approved it. New accounts
   wait in an approval queue, and admins can also pre-approve email addresses.
-- **Two roles:**
+- **Three roles:**
   - *Members* can only book and cancel their own bookings.
-  - *Admins* manage members, see statistics (per member × equipment, hours, CSV export) and change the rules.
+  - *Admins* manage members and other admins, see statistics (per member × equipment, hours, CSV export) and change the rules.
+  - *Super admins* (first one: melihteke@gmail.com) can also create other super admins. Nobody can block, delete or
+    change a super admin from the site.
 - **Fleet:** 6 Laser Pico · 2 kielboten · 10 waterfietsen · 10 supboards · 10 windsurfplanken.
 - **Booking rules** are enforced in Postgres, so the front-end can't bypass them:
   - Bookings last at most **3 hours**, in 30-minute steps.
@@ -38,7 +40,7 @@ login apps, GitHub Pages, and DNS.
 ## Project layout
 
 ```
-supabase/migrations/   0001_schema.sql (tables, RLS, seed) · 0002_functions.sql (booking + admin RPCs)
+supabase/migrations/   0001_schema.sql (tables, RLS, seed) · 0002_functions.sql (booking + admin RPCs) · 0003/0004 (super admin)
 supabase/tests/        rules.test.ts: runs the migrations in PGlite and tests every rule and RLS policy
 src/i18n/ui.ts         Dutch / English strings, language routing helpers
 src/lib/rules.ts       time-slot helpers mirroring the database rules (+ rules.test.ts)

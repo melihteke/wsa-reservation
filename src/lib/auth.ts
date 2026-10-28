@@ -53,7 +53,8 @@ export function useAuth() {
 }
 
 export const isApproved = (state: AuthState) => state.status === "signed-in" && state.profile?.status === "approved";
-export const isAdmin = (state: AuthState) => isApproved(state) && state.status === "signed-in" && state.profile?.role === "admin";
+export const isAdmin = (state: AuthState) =>
+  isApproved(state) && state.status === "signed-in" && (state.profile?.role === "admin" || state.profile?.role === "superadmin");
 
 export async function signIn(provider: Provider, lang: Lang) {
   const supabase = getSupabase();

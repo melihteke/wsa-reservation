@@ -56,6 +56,7 @@ beforeAll(async () => {
   }
   await db.exec(`insert into public.allowed_emails (email, role) values ('admin@wsa.nl', 'admin'), ('anna@wsa.nl', 'member'), ('bob@wsa.nl', 'member'), ('cem@wsa.nl', 'member'), ('dirk@wsa.nl', 'member'), ('eva@wsa.nl', 'member')`);
   await addUser("admin", "admin@wsa.nl", "Admin");
+  await addUser("super", "melihteke@gmail.com", "Melih");
   for (const name of ["anna", "bob", "cem", "dirk", "eva"]) await addUser(name, `${name}@wsa.nl`);
   await addUser("stranger", "stranger@gmail.com", "Stranger");
 }, 60_000);
@@ -281,5 +282,80 @@ describe("admin", () => {
     await as("admin", () => db.query(`select public.admin_delete_member($1)`, [users.gina]));
     const { rows } = await db.query(`select 1 from auth.users where id = $1`, [users.gina]);
     expect(rows).toHaveLength(0);
+  });
+});
+
+describe("super admin", () => {
+  const rpc = (who: string, sql: string, params: unknown[] = []) => as(who, () => db.query(sql, params));
+  const role = async (id: string) =>
+    (await db.query<{ role: string; status: string }>(`select role, status from public.profiles where id = $1`, [id])).rows[0];
+
+  it("makes melihteke@gmail.com the first super admin", async () => {
+    expect(await role(users.super!)).toEqual({ role: "superadmin", status: "approved" });
+    const admin = await rpc("super", `select public.is_admin() as a, public.is_superadmin() as s`);
+    expect(admin.rows[0]).toEqual({ a: true, s: true });
+  });
+
+  it("can't be blocked, demoted or deleted by an admin", async () => {
+    await expect(rpc("admin", `select public.admin_update_member($1, 'member', 'approved')`, [users.super])).rejects.toThrow("protected_superadmin");
+    await expect(rpc("admin", `select public.admin_update_member($1, 'superadmin', 'blocked')`, [users.super])).rejects.toThrow("protected_superadmin");
+    await expect(rpc("admin", `select public.admin_delete_member($1)`, [users.super])).rejects.toThrow("protected_superadmin");
+    expect(await role(users.super!)).toEqual({ role: "superadmin", status: "approved" });
+  });
+
+  it("can't be deleted or changed by another super admin either", async () => {
+    await addUser("super2", "second.super@gmail.com");
+    await rpc("super", `select public.admin_update_member($1, 'superadmin', 'approved')`, [users.super2]);
+    expect(await role(users.super2!)).toEqual({ role: "superadmin", status: "approved" });
+    await expect(rpc("super2", `select public.admin_delete_member($1)`, [users.super])).rejects.toThrow("protected_superadmin");
+    await expect(rpc("super", `select public.admin_update_member($1, 'member', 'approved')`, [users.super2])).rejects.toThrow("protected_superadmin");
+  });
+
+  it("only super admins can grant the super admin role", async () => {
+    await addUser("hank", "hank@gmail.com");
+    await expect(rpc("admin", `select public.admin_update_member($1, 'superadmin', 'approved')`, [users.hank])).rejects.toThrow("superadmin_only");
+    await expect(rpc("admin", `select public.admin_add_email('x.super@gmail.com', 'superadmin')`)).rejects.toThrow("superadmin_only");
+    await rpc("super", `select public.admin_add_email('new.super@gmail.com', 'superadmin')`);
+    await addUser("newsuper", "new.super@gmail.com");
+    expect(await role(users.newsuper!)).toEqual({ role: "superadmin", status: "approved" });
+  });
+
+  it("lets super admins create admins and members", async () => {
+    await addUser("ivy", "ivy@gmail.com");
+    await rpc("super", `select public.admin_update_member($1, 'admin', 'approved')`, [users.ivy]);
+    expect(await role(users.ivy!)).toEqual({ role: "admin", status: "approved" });
+    await rpc("super", `select public.admin_add_email('jo@gmail.com', 'member')`);
+    await addUser("jo", "jo@gmail.com");
+    expect(await role(users.jo!)).toEqual({ role: "member", status: "approved" });
+  });
+
+  it("lets admins block and delete other admins", async () => {
+    await addUser("kim", "kim@gmail.com");
+    await rpc("super", `select public.admin_update_member($1, 'admin', 'approved')`, [users.kim]);
+    await rpc("admin", `select public.admin_update_member($1, 'admin', 'blocked')`, [users.kim]);
+    expect(await role(users.kim!)).toEqual({ role: "admin", status: "blocked" });
+    await rpc("admin", `select public.admin_delete_member($1)`, [users.kim]);
+    expect((await db.query(`select 1 from public.profiles where id = $1`, [users.kim])).rows).toHaveLength(0);
+  });
+
+  it("protects super admin pre-approvals from admins", async () => {
+    await expect(rpc("admin", `select public.admin_remove_email('melihteke@gmail.com')`)).rejects.toThrow("protected_superadmin");
+    await expect(rpc("admin", `select public.admin_add_email('melihteke@gmail.com', 'member')`)).rejects.toThrow("protected_superadmin");
+    const { rows } = await db.query<{ role: string }>(`select role from public.allowed_emails where email = 'melihteke@gmail.com'`);
+    expect(rows[0]!.role).toBe("superadmin");
+  });
+
+  it("blocks direct writes to pre-approvals, even for admins", async () => {
+    await expect(rpc("admin", `insert into public.allowed_emails (email, role) values ('sneaky@gmail.com', 'superadmin')`)).rejects.toThrow(/permission denied/);
+    await expect(rpc("admin", `delete from public.allowed_emails where email = 'melihteke@gmail.com'`)).rejects.toThrow(/permission denied/);
+    const read = await rpc("admin", `select email from public.allowed_emails where email = 'melihteke@gmail.com'`);
+    expect(read.rows).toHaveLength(1);
+  });
+
+  it("doesn't let admins cancel a super admin's booking", async () => {
+    const res = await book("super", "sup", 1, "10:00", 60);
+    const id = res.rows[0]!.id;
+    await expect(rpc("admin", `select public.cancel_reservation($1)`, [id])).rejects.toThrow("protected_superadmin");
+    await rpc("super", `select public.cancel_reservation($1)`, [id]);
   });
 });

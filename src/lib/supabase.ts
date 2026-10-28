@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE } from "@/config";
 
-export type Role = "member" | "admin";
+export type Role = "member" | "admin" | "superadmin";
 export type Status = "pending" | "approved" | "blocked";
 
 export type Profile = {
