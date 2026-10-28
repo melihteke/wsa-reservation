@@ -76,8 +76,8 @@ Enable each provider under **Authentication → Sign In / Providers** and paste 
    | ------------------------ | ------------------------------------------------------------------------------------------------- |
    | App domains              | `mteke.com`                                                                                       |
    | App icon (1024 x 1024)   | Upload [`docs/app-icon-1024.png`](app-icon-1024.png)                                              |
-   | Privacy policy URL       | `https://wsa-reservation.mteke.com/privacy`                                                       |
-   | User data deletion       | Choose **Data deletion instructions URL**, then `https://wsa-reservation.mteke.com/data-deletion` (Meta rejects the privacy URL here) |
+   | Privacy policy URL       | `https://wsa-reservation.mteke.com/privacy/`                                                      |
+   | User data deletion       | Choose **Data deletion instructions URL**, then `https://wsa-reservation.mteke.com/data-deletion/`. Keep the trailing `/`: without it GitHub Pages answers with a redirect, which Meta rejects. Meta also rejects the privacy URL here |
    | Category                 | **Lifestyle** (or **Sports** if it is in the list)                                                |
 
    Click **Save changes**. Facebook opens both URLs to check them, so wait until the site's HTTPS certificate works
