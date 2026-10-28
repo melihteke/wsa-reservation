@@ -1,0 +1,57 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      # Booking rules and RLS against the real migrations (PGlite), plus the UI time helpers.
+      - run: npm test
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Tells the build where Pages serves the site: "/" with the custom domain,
+      # "/wsa-reservation" on melihteke.github.io before the domain is configured.
+      - id: pages
+        uses: actions/configure-pages@v6
+      - name: Pass Pages URL and Supabase settings to the build
+        run: |
+          echo "SITE_ORIGIN=${{ steps.pages.outputs.origin }}" >> "$GITHUB_ENV"
+          echo "SITE_BASE_PATH=${{ steps.pages.outputs.base_path }}" >> "$GITHUB_ENV"
+          echo "PUBLIC_SUPABASE_URL=${{ vars.PUBLIC_SUPABASE_URL }}" >> "$GITHUB_ENV"
+          echo "PUBLIC_SUPABASE_ANON_KEY=${{ vars.PUBLIC_SUPABASE_ANON_KEY }}" >> "$GITHUB_ENV"
+      - uses: withastro/action@v6
+        with:
+          node-version: 24
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

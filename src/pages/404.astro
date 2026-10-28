@@ -1,0 +1,20 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { localePath, useTranslations } from "@/i18n/ui";
+import { url } from "@/lib/url";
+
+const t = useTranslations("nl");
+const en = useTranslations("en");
+---
+
+<BaseLayout lang="nl" title={t("notFound.title")} noindex>
+  <div class="py-16 text-center">
+    <p class="text-6xl">🌊</p>
+    <h1 class="mt-4 text-3xl font-semibold tracking-tight">{t("notFound.title")}</h1>
+    <p class="mt-2 text-muted-foreground">{t("notFound.text")} · <span lang="en">{en("notFound.text")}</span></p>
+    <div class="mt-6 flex justify-center gap-3">
+      <a href={url(localePath("nl", "/"))} class="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">{t("notFound.back")}</a>
+      <a href={url(localePath("en", "/"))} lang="en" class="rounded-full border border-border px-5 py-2.5 text-sm font-semibold">{en("notFound.back")}</a>
+    </div>
+  </div>
+</BaseLayout>

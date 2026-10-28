@@ -1,0 +1,82 @@
+---
+import { useTranslations, type Lang } from "@/i18n/ui";
+
+interface Props {
+  lang: Lang;
+  lat: number;
+  lon: number;
+  zoom?: number;
+}
+
+// Centred on De Poel; narrow screens zoom out one step (Windy only takes whole zooms).
+const { lang, lat, lon, zoom = 10 } = Astro.props;
+const t = useTranslations(lang);
+const embed = (z: number) => {
+  const params = new URLSearchParams({
+    type: "map",
+    location: "coordinates",
+    lat: String(lat),
+    lon: String(lon),
+    detailLat: String(lat),
+    detailLon: String(lon),
+    zoom: String(z),
+    level: "surface",
+    overlay: "wind",
+    product: "ecmwf",
+    calendar: "now",
+    pressure: "",
+    menu: "",
+    message: "true",
+    marker: "true",
+    metricWind: "kt",
+    metricTemp: "°C",
+    radarRange: "-1",
+  });
+  return `https://embed.windy.com/embed.html?${params}`;
+};
+const src = embed(zoom);
+const srcMobile = embed(zoom - 1);
+---
+
+<section aria-labelledby="windy-map" class="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+  <div class="flex flex-wrap items-end justify-between gap-2 px-5 pt-5">
+    <div>
+      <p class="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{t("windy.kicker")}</p>
+      <h2 id="windy-map" class="mt-1.5 text-xl font-semibold tracking-tight">{t("windy.title")}</h2>
+    </div>
+    <p class="text-xs text-muted-foreground">
+      {t("windy.source")} · <a class="underline underline-offset-2 hover:text-foreground" href={`https://www.windy.com/?${lat},${lon},${zoom}`} target="_blank" rel="noopener">Windy.com</a>
+    </p>
+  </div>
+  <div class="relative mt-4 h-[420px] w-full bg-[#2a3b4d] sm:h-[520px]" data-windy>
+    <iframe
+      data-src={src}
+      data-src-mobile={srcMobile}
+      title={t("windy.title")}
+      loading="lazy"
+      class="absolute inset-0 h-full w-full border-0"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen></iframe>
+    <noscript><iframe src={src} title={t("windy.title")} loading="lazy" class="absolute inset-0 h-full w-full border-0"></iframe></noscript>
+    <!-- Lets the page scroll past the map; one tap/click hands control to the map. -->
+    <button
+      type="button"
+      data-windy-shield
+      class="group absolute inset-0 flex items-end justify-center bg-transparent pb-4 focus-visible:outline-none"
+      aria-label={t("windy.interact")}
+    >
+      <span class="rounded-full bg-black/55 px-3 py-1.5 text-xs font-medium text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100 group-focus-visible:opacity-100">
+        {t("windy.explore")}
+      </span>
+    </button>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-windy]").forEach((box) => {
+    const frame = box.querySelector<HTMLIFrameElement>("iframe[data-src]");
+    if (frame) frame.src = (box.clientWidth < 640 ? frame.dataset.srcMobile : frame.dataset.src) ?? "";
+    const shield = box.querySelector<HTMLButtonElement>("[data-windy-shield]");
+    shield?.addEventListener("click", () => shield.remove());
+  });
+</script>

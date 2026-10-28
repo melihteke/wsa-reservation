@@ -1,0 +1,136 @@
+---
+import "@/styles/global.css";
+import { SITE } from "@/config";
+import { stripBase, url } from "@/lib/url";
+import { LANGS, localePath, splitLang, useTranslations, type Lang } from "@/i18n/ui";
+import AuthNav from "@/components/AuthNav";
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+}
+
+const { lang, title, noindex = false } = Astro.props;
+const t = useTranslations(lang);
+const description = Astro.props.description ?? t("meta.description");
+const pageTitle = title ? `${title} · ${SITE.title}` : SITE.title;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const { path } = splitLang(stripBase(Astro.url.pathname).replace(/\/$/, "") || "/");
+const nav = [
+  { href: "/", label: t("nav.home") },
+  { href: "/reserve", label: t("nav.reserve") },
+];
+const isActive = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+const alternates = LANGS.map((l) => ({ lang: l, href: url(localePath(l, path)) }));
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonical} />
+    {alternates.map((a) => <link rel="alternate" hreflang={a.lang} href={new URL(a.href, Astro.site)} />)}
+    <link rel="icon" type="image/svg+xml" href={url("/favicon.svg")} />
+    <link rel="sitemap" href={url("/sitemap-index.xml")} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === "nl" ? "nl_NL" : "en_GB"} />
+    <meta name="theme-color" content="#0b3a5c" />
+    <script is:inline>
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen font-sans">
+    <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[1000] focus:rounded-md focus:bg-background focus:px-3 focus:py-2">{t("nav.skip")}</a>
+    <header class="sticky top-0 z-[500] border-b border-border bg-background/85 backdrop-blur">
+      <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
+        <a href={url(localePath(lang, "/"))} class="flex shrink-0 items-center gap-2 font-semibold tracking-tight">
+          <img src={url("/favicon.svg")} alt="" width="26" height="26" />
+          <span class="hidden md:inline">{SITE.title}</span>
+          <span class="md:hidden">{SITE.shortTitle}</span>
+        </a>
+        <nav aria-label="Main" class="flex min-w-0 items-center gap-1 text-sm">
+          {
+            nav.map((item) => (
+              <a
+                href={url(localePath(lang, item.href))}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                class:list={[
+                  "hidden rounded-md px-3 py-1.5 transition-colors sm:inline-block",
+                  isActive(item.href) ? "bg-secondary font-medium text-foreground" : "text-muted-foreground hover:text-foreground",
+                ]}
+              >
+                {item.label}
+              </a>
+            ))
+          }
+          <AuthNav client:only="react" lang={lang} path={path} />
+          <div class="ml-1 flex items-center rounded-md border border-border text-xs" role="group" aria-label={t("nav.language")}>
+            {
+              alternates.map((a) => (
+                <a
+                  href={a.href}
+                  hreflang={a.lang}
+                  lang={a.lang}
+                  aria-current={a.lang === lang ? "true" : undefined}
+                  class:list={[
+                    "px-2 py-1 font-medium uppercase",
+                    a.lang === lang ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
+                  ]}
+                >
+                  {a.lang}
+                </a>
+              ))
+            }
+          </div>
+          <button
+            id="theme-toggle"
+            type="button"
+            aria-label={t("nav.toggleTheme")}
+            class="ml-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
+          >
+            <svg class="h-4 w-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path></svg>
+            <svg class="hidden h-4 w-4 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <slot />
+    </main>
+
+    <footer class="border-t border-border">
+      <div class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p>© {new Date().getFullYear()} {SITE.clubName} · {t("footer.tagline")}</p>
+        <p>
+          {t("footer.wind")} <a class="underline underline-offset-2 hover:text-foreground" href="https://open-meteo.com/">Open-Meteo</a>{" · "}
+          <a class="underline underline-offset-2 hover:text-foreground" href="https://www.windy.com/">Windy</a>{" · "}
+          <a class="underline underline-offset-2 hover:text-foreground" href={url(localePath(lang, "/privacy"))}>{t("footer.privacy")}</a>{" · "}
+          <a class="underline underline-offset-2 hover:text-foreground" href={SITE.logbook}>Logbook</a>{" · "}
+          <a class="underline underline-offset-2 hover:text-foreground" href={SITE.github}>{t("footer.source")}</a>
+        </p>
+      </div>
+    </footer>
+
+    <script>
+      document.getElementById("theme-toggle")?.addEventListener("click", () => {
+        const dark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem("theme", dark ? "dark" : "light");
+      });
+    </script>
+  </body>
+</html>

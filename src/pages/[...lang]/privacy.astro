@@ -1,0 +1,60 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { SITE } from "@/config";
+import { langPaths, useTranslations, type Lang } from "@/i18n/ui";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t("privacy.title")}>
+  <article class="prose prose-slate max-w-2xl dark:prose-invert">
+    <h1>{t("privacy.title")}</h1>
+    {
+      lang === "nl" ? (
+        <>
+          <p>
+            Deze site ({SITE.url}) is het reserveringssysteem van {SITE.clubName}. Je logt in met Google, Facebook of GitHub; wij ontvangen dan alleen je naam,
+            e-mailadres en profielfoto.
+          </p>
+          <h2>Wat we bewaren</h2>
+          <ul>
+            <li>Je naam, e-mailadres, profielfoto en waarmee je inlogt, zodat een beheerder je toegang kan geven.</li>
+            <li>Je reserveringen (materiaal, start- en eindtijd), zodat leden zien wie er op het water is en het bestuur de vloot kan plannen.</li>
+          </ul>
+          <p>
+            Andere goedgekeurde leden zien je naam en profielfoto bij lopende en komende reserveringen. Bezoekers die niet zijn ingelogd zien alleen aantallen. De
+            gegevens staan bij Supabase (EU) en worden niet gedeeld of verkocht.
+          </p>
+          <h2>Verwijderen</h2>
+          <p>
+            Vraag een beheerder om je account te verwijderen; dan worden je login, profiel en reserveringen gewist. Je kunt de koppeling ook intrekken in de instellingen
+            van je Google-, Facebook- of GitHub-account.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            This site ({SITE.url}) is the booking system of {SITE.clubName}. You sign in with Google, Facebook or GitHub; we only receive your name, email address and
+            profile picture.
+          </p>
+          <h2>What we store</h2>
+          <ul>
+            <li>Your name, email address, profile picture and sign-in provider, so an admin can give you access.</li>
+            <li>Your bookings (equipment, start and end time), so members can see who is on the water and the board can plan the fleet.</li>
+          </ul>
+          <p>
+            Other approved members see your name and picture next to running and upcoming bookings. Visitors who are not signed in only see counts. The data is stored
+            at Supabase (EU) and is never shared or sold.
+          </p>
+          <h2>Deletion</h2>
+          <p>
+            Ask an admin to delete your account; this removes your login, profile and bookings. You can also revoke access in your Google, Facebook or GitHub account
+            settings.
+          </p>
+        </>
+      )
+    }
+  </article>
+</BaseLayout>

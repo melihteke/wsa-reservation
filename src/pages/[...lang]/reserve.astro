@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { langPaths, useTranslations, type Lang } from "@/i18n/ui";
+import ReservePage from "@/components/ReservePage";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t("reserve.title")} noindex>
+  <ReservePage client:only="react" lang={lang} />
+</BaseLayout>

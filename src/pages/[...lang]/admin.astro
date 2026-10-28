@@ -1,0 +1,13 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { langPaths, useTranslations, type Lang } from "@/i18n/ui";
+import AdminPage from "@/components/AdminPage";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang} title={t("admin.title")} noindex>
+  <AdminPage client:only="react" lang={lang} />
+</BaseLayout>

@@ -1,0 +1,38 @@
+{
+  "name": "wsa-reservation",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Equipment reservations for Water Sportvereniging (WSA), Amstelveen: wsa-reservation.mteke.com",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/react": "^7.1.1",
+    "@astrojs/sitemap": "^3.7.4",
+    "@supabase/supabase-js": "^2.118.0",
+    "@tailwindcss/typography": "^0.5.20",
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.4.2",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.61.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "recharts": "^3.10.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "vitest": "^5.0.5"
+  }
+}

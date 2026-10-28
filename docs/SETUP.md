@@ -1,0 +1,129 @@
+# Setup guide: wsa-reservation.mteke.com
+
+This guide takes the site from this repository to a live booking system:
+**Supabase** (database + login) → **OAuth apps** (Google, Facebook, GitHub) → **GitHub Pages** + **DNS**.
+
+> Placeholders: `<ref>` is your Supabase project ref (the `xxxx` in `https://xxxx.supabase.co`).
+
+## 1. Supabase project
+
+1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
+   - Name: `wsa-reservation`. Region: **West EU (Ireland)** or **Central EU (Frankfurt)** (the privacy page says the data is in the EU).
+2. **SQL Editor** → **New query**, then paste and run **in order**:
+   1. [`supabase/migrations/0001_schema.sql`](../supabase/migrations/0001_schema.sql): tables, row level security, fleet seed
+      (6 Laser Pico, 2 kielboten, 10 waterfietsen, 10 supboards, 10 windsurfplanken) and opening hours 09:00–21:00.
+   2. [`supabase/migrations/0002_functions.sql`](../supabase/migrations/0002_functions.sql): booking rules and admin functions.
+
+   With the Supabase CLI you can run `supabase link --project-ref <ref>` and then `supabase db push` instead.
+3. **Make yourself the first admin.** Run this *before* you sign in for the first time:
+
+   ```sql
+   insert into public.allowed_emails (email, role) values ('your.email@gmail.com', 'admin');
+   ```
+
+   If you already signed in, run this instead:
+   `update public.profiles set role = 'admin', status = 'approved' where email = 'your.email@gmail.com';`
+4. **Database → Publications → `supabase_realtime`**: check that `reservations` is listed. The migration adds it,
+   and the live board uses it.
+5. **Project Settings → API**: copy the **Project URL** and the **anon / publishable key**. Both are public by design,
+   because all protection is done by row level security and the database functions.
+
+## 2. Auth URLs
+
+**Authentication → URL Configuration**
+
+| Setting       | Value                                                                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL      | `https://wsa-reservation.mteke.com`                                                                                                    |
+| Redirect URLs | `https://wsa-reservation.mteke.com/**`<br>`https://melihteke.github.io/wsa-reservation/**` (before DNS works)<br>`http://localhost:4321/**` |
+
+Every provider below uses the same **callback URL**: `https://<ref>.supabase.co/auth/v1/callback`.
+
+## 3. Login providers
+
+Enable each provider under **Authentication → Sign In / Providers** and paste in its client ID and secret.
+
+### Google
+
+1. Go to [console.cloud.google.com](https://console.cloud.google.com) and create a project named `WSA Reservations`.
+2. **APIs & Services → OAuth consent screen**: choose External, app name `WSA Reserveringen`, add your support email,
+   and set the authorised domains `mteke.com` and `supabase.co`. The scopes are `email`, `profile` and `openid`. Publish the app.
+3. **Credentials → Create credentials → OAuth client ID**:
+   - Type: **Web application**.
+   - Authorised JavaScript origins: `https://wsa-reservation.mteke.com`.
+   - Authorised redirect URIs: `https://<ref>.supabase.co/auth/v1/callback`.
+4. Copy the client ID and secret into Supabase → **Google**.
+
+### GitHub
+
+1. Go to GitHub → **Settings → Developer settings → OAuth Apps → New OAuth App**.
+   - Homepage URL: `https://wsa-reservation.mteke.com`.
+   - Authorization callback URL: `https://<ref>.supabase.co/auth/v1/callback`.
+2. Generate a client secret and copy the ID and secret into Supabase → **GitHub**.
+
+### Facebook
+
+1. Go to [developers.facebook.com](https://developers.facebook.com/apps) → **Create app** → use case
+   **Authenticate and request data from users with Facebook Login**.
+2. **Use cases → Facebook Login → Customize**: add the `email` permission (`public_profile` is already there).
+3. **Facebook Login → Settings**: set Valid OAuth Redirect URIs to `https://<ref>.supabase.co/auth/v1/callback`.
+4. **App settings → Basic**:
+   - App domains: `mteke.com`.
+   - Privacy policy URL: `https://wsa-reservation.mteke.com/privacy`.
+   - User data deletion: the same URL. The privacy page explains how to ask for deletion.
+   - Category: e.g. *Lifestyle*.
+5. Switch the app to **Live**, then copy the App ID and App secret into Supabase → **Facebook**.
+
+> Supabase links identities that share the same verified email, so one person who signs in with Google and then
+> with GitHub stays one member. If a provider does create a second account, the database approves it automatically
+> as long as an approved account with the same email already exists.
+
+## 4. GitHub repository and Pages
+
+1. Create the repository `melihteke/wsa-reservation` and push this folder:
+
+   ```powershell
+   git remote add origin https://github.com/melihteke/wsa-reservation.git
+   git push -u origin main
+   ```
+2. **Settings → Secrets and variables → Actions → Variables** (these are variables, not secrets):
+   - `PUBLIC_SUPABASE_URL` = `https://<ref>.supabase.co`
+   - `PUBLIC_SUPABASE_ANON_KEY` = the anon / publishable key
+3. **Settings → Pages**:
+   - Source: **GitHub Actions**.
+   - Custom domain: `wsa-reservation.mteke.com`. The repository already contains `public/CNAME`.
+   - Turn on **Enforce HTTPS** once the certificate has been issued.
+4. Every push to `main` runs the tests and then builds and deploys the site (see `.github/workflows/deploy.yml`).
+   You can also start it by hand under **Actions → Deploy to GitHub Pages → Run workflow**.
+
+## 5. DNS (mteke.com)
+
+At the DNS provider for `mteke.com`, add:
+
+| Type  | Name              | Value                 |
+| ----- | ----------------- | --------------------- |
+| CNAME | `wsa-reservation` | `melihteke.github.io` |
+
+Optionally, verify the domain under GitHub → **Settings → Pages → Verified domains** to protect it against takeover.
+
+## 6. Daily use
+
+- **New members** sign in with Google, Facebook or GitHub and land on *Wacht op goedkeuring*.
+  - An admin approves them under **Beheer → Leden**.
+  - An admin can also pre-approve an email address under **E-mail vooraf goedkeuren**, so that person gets access right away.
+- **Remove someone:**
+  - **Blokkeren** keeps the member's history for the statistics and cancels their upcoming bookings.
+  - **Verwijderen** deletes the login, the profile and all of the member's bookings.
+- **Rules** are set under **Beheer → Instellingen**:
+  - Opening hours, maximum duration and how many days ahead people can book.
+  - Fleet size: you can also take equipment out of service.
+
+## Local development
+
+```powershell
+Copy-Item .env.example .env   # fill in URL + anon key
+npm install
+npm run dev                   # http://localhost:4321
+npm test                      # booking rules + RLS (PGlite) and UI time helpers
+npm run build                 # astro check + static build into dist/
+```

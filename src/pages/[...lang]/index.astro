@@ -1,0 +1,53 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import LiveBoard from "@/components/LiveBoard";
+import ClubStats from "@/components/ClubStats";
+import ClubHeatmap from "@/components/ClubHeatmap";
+import LiveWind from "@/components/LiveWind";
+import WindyMap from "@/components/WindyMap.astro";
+import { SITE } from "@/config";
+import { langPaths, localePath, useTranslations, type Lang } from "@/i18n/ui";
+import { url } from "@/lib/url";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const t = useTranslations(lang);
+---
+
+<BaseLayout lang={lang}>
+  <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b3a5c] via-[#0f5584] to-[#1b7fb3] px-6 py-12 text-white shadow-lg sm:px-10 sm:py-16">
+    <svg class="pointer-events-none absolute inset-x-0 bottom-0 h-24 w-full text-white/10" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 60 C150 100 350 20 600 60 C850 100 1050 20 1200 60 V120 H0 Z" fill="currentColor"></path>
+      <path d="M0 85 C200 115 400 55 600 85 C800 115 1000 55 1200 85 V120 H0 Z" fill="currentColor"></path>
+    </svg>
+    <p class="text-xs font-medium uppercase tracking-[0.2em] text-sky-200">{t("hero.kicker")}</p>
+    <h1 class="mt-3 max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">{t("hero.title")}</h1>
+    <p class="mt-4 max-w-xl text-sm text-sky-100 sm:text-base">{t("hero.text")}</p>
+    <div class="relative mt-8 flex flex-wrap gap-3">
+      <a href={url(localePath(lang, "/reserve"))} class="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-[#0b3a5c] shadow hover:bg-sky-50">{t("hero.cta")}</a>
+      <a href={SITE.club.mapsUrl} target="_blank" rel="noopener" class="rounded-full border border-white/40 px-5 py-2.5 text-sm font-semibold hover:bg-white/10">{t("hero.route")}</a>
+    </div>
+  </section>
+
+  <section aria-label={t("board.title")} class="mt-10">
+    <LiveBoard client:only="react" lang={lang} />
+  </section>
+
+  <section aria-labelledby="club-stats" class="mt-6">
+    <h2 id="club-stats" class="sr-only">{t("stats.title")}</h2>
+    <ClubStats client:only="react" lang={lang} />
+  </section>
+
+  <section class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
+    <div class="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div class="mb-5">
+        <p class="text-[10px] font-medium uppercase tracking-[0.16em] text-muted-foreground">{t("heatmap.kicker")}</p>
+        <h2 class="mt-1.5 text-xl font-semibold tracking-tight">{t("heatmap.title")}</h2>
+      </div>
+      <ClubHeatmap client:only="react" lang={lang} />
+    </div>
+    <LiveWind client:load lat={SITE.windSpot.lat} lon={SITE.windSpot.lon} place={SITE.windSpot.name} timeZone={SITE.timeZone} lang={lang} />
+  </section>
+
+  <WindyMap lang={lang} lat={SITE.windSpot.lat} lon={SITE.windSpot.lon} />
+</BaseLayout>
