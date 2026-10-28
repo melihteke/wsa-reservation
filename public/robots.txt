@@ -1,0 +1,14 @@
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /en/admin
+Disallow: /auth/
+Disallow: /en/auth/
+
+Sitemap: https://wsa-reservation.mteke.com/sitemap-index.xml
