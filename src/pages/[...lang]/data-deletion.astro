@@ -1,0 +1,61 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { SITE } from "@/config";
+import { langPaths, localePath, type Lang } from "@/i18n/ui";
+import { url } from "@/lib/url";
+
+export const getStaticPaths = langPaths;
+const { lang } = Astro.props as { lang: Lang };
+const title = lang === "nl" ? "Gegevens verwijderen" : "Data deletion";
+---
+
+<BaseLayout lang={lang} title={title}>
+  <article class="prose prose-slate max-w-2xl dark:prose-invert">
+    <h1>{title}</h1>
+    {
+      lang === "nl" ? (
+        <>
+          <p>
+            Je kunt op elk moment vragen om al je gegevens bij {SITE.clubName} ({SITE.url}) te laten verwijderen. Dit geldt ook als je hebt ingelogd met
+            Facebook, Google of GitHub.
+          </p>
+          <h2>Zo vraag je het aan</h2>
+          <ol>
+            <li>Stuur een bericht aan een beheerder van de club of aan het clubbestuur, met het e-mailadres waarmee je inlogt.</li>
+            <li>De beheerder verwijdert je account via <em>Beheer → Leden → Verwijderen</em>.</li>
+            <li>Binnen 30 dagen zijn je login, profiel (naam, e-mailadres, profielfoto) en al je reserveringen definitief gewist.</li>
+          </ol>
+          <h2>Koppeling met Facebook intrekken</h2>
+          <ol>
+            <li>Ga in Facebook naar <strong>Instellingen en privacy → Instellingen → Apps en websites</strong>.</li>
+            <li>Kies <strong>wsa-reservation</strong> en klik op <strong>Verwijderen</strong>.</li>
+          </ol>
+          <p>
+            Meer over welke gegevens we bewaren staat in de <a href={url(localePath(lang, "/privacy"))}>privacyverklaring</a>.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            You can ask at any time to have all your data at {SITE.clubName} ({SITE.url}) deleted. This also applies if you signed in with Facebook, Google or
+            GitHub.
+          </p>
+          <h2>How to request deletion</h2>
+          <ol>
+            <li>Send a message to a club admin or to the club board, with the email address you sign in with.</li>
+            <li>The admin deletes your account under <em>Admin → Members → Delete</em>.</li>
+            <li>Within 30 days your login, profile (name, email address, profile picture) and all your bookings are permanently erased.</li>
+          </ol>
+          <h2>Remove the Facebook connection</h2>
+          <ol>
+            <li>In Facebook, go to <strong>Settings &amp; privacy → Settings → Apps and websites</strong>.</li>
+            <li>Choose <strong>wsa-reservation</strong> and click <strong>Remove</strong>.</li>
+          </ol>
+          <p>
+            More about which data we store is in the <a href={url(localePath(lang, "/privacy"))}>privacy policy</a>.
+          </p>
+        </>
+      )
+    }
+  </article>
+</BaseLayout>

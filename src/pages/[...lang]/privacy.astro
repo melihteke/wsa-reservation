@@ -1,7 +1,8 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { SITE } from "@/config";
-import { langPaths, useTranslations, type Lang } from "@/i18n/ui";
+import { langPaths, localePath, useTranslations, type Lang } from "@/i18n/ui";
+import { url } from "@/lib/url";
 
 export const getStaticPaths = langPaths;
 const { lang } = Astro.props as { lang: Lang };
@@ -30,7 +31,7 @@ const t = useTranslations(lang);
           <h2>Verwijderen</h2>
           <p>
             Vraag een beheerder om je account te verwijderen; dan worden je login, profiel en reserveringen gewist. Je kunt de koppeling ook intrekken in de instellingen
-            van je Google-, Facebook- of GitHub-account.
+            van je Google-, Facebook- of GitHub-account. Zie <a href={url(localePath(lang, "/data-deletion"))}>Gegevens verwijderen</a>.
           </p>
         </>
       ) : (
@@ -51,7 +52,7 @@ const t = useTranslations(lang);
           <h2>Deletion</h2>
           <p>
             Ask an admin to delete your account; this removes your login, profile and bookings. You can also revoke access in your Google, Facebook or GitHub account
-            settings.
+            settings. See <a href={url(localePath(lang, "/data-deletion"))}>Data deletion</a>.
           </p>
         </>
       )
