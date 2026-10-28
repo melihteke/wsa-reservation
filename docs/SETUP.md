@@ -8,8 +8,10 @@ This guide takes the site from this repository to a live booking system:
 ## 1. Supabase project
 
 1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**.
+
    - Name: `wsa-reservation`. Region: **West EU (Ireland)** or **Central EU (Frankfurt)** (the privacy page says the data is in the EU).
 2. **SQL Editor** → **New query**, then paste and run **in order**:
+
    1. [`supabase/migrations/0001_schema.sql`](../supabase/migrations/0001_schema.sql): tables, row level security, fleet seed
       (6 Laser Pico, 2 kielboten, 10 waterfietsen, 10 supboards, 10 windsurfplanken) and opening hours 09:00–21:00.
    2. [`supabase/migrations/0002_functions.sql`](../supabase/migrations/0002_functions.sql): booking rules and admin functions.
@@ -32,10 +34,10 @@ This guide takes the site from this repository to a live booking system:
 
 **Authentication → URL Configuration**
 
-| Setting       | Value                                                                                                                                  |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Site URL      | `https://wsa-reservation.mteke.com`                                                                                                    |
-| Redirect URLs | `https://wsa-reservation.mteke.com/**`<br>`https://melihteke.github.io/wsa-reservation/**` (before DNS works)<br>`http://localhost:4321/**` |
+| Setting       | Value                                                                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL      | `https://wsa-reservation.mteke.com`                                                                                                 |
+| Redirect URLs | `https://wsa-reservation.mteke.com/**https://melihteke.github.io/wsa-reservation/**` (before DNS works)`http://localhost:4321/**` |
 
 Every provider below uses the same **callback URL**: `https://<ref>.supabase.co/auth/v1/callback`.
 
@@ -67,12 +69,21 @@ Enable each provider under **Authentication → Sign In / Providers** and paste 
    **Authenticate and request data from users with Facebook Login**.
 2. **Use cases → Facebook Login → Customize**: add the `email` permission (`public_profile` is already there).
 3. **Facebook Login → Settings**: set Valid OAuth Redirect URIs to `https://<ref>.supabase.co/auth/v1/callback`.
-4. **App settings → Basic**:
-   - App domains: `mteke.com`.
-   - Privacy policy URL: `https://wsa-reservation.mteke.com/privacy`.
-   - User data deletion: the same URL. The privacy page explains how to ask for deletion.
-   - Category: e.g. *Lifestyle*.
-5. Switch the app to **Live**, then copy the App ID and App secret into Supabase → **Facebook**.
+4. **App settings → Basic**. Facebook won't let the app go Live ("Currently ineligible for submission") until
+   these fields are filled in:
+
+   | Field                    | Value                                                                                             |
+   | ------------------------ | ------------------------------------------------------------------------------------------------- |
+   | App domains              | `mteke.com`                                                                                       |
+   | App icon (1024 x 1024)   | Upload [`docs/app-icon-1024.png`](app-icon-1024.png)                                              |
+   | Privacy policy URL       | `https://wsa-reservation.mteke.com/privacy`                                                       |
+   | User data deletion       | Choose **Data deletion instructions URL**, then `https://wsa-reservation.mteke.com/privacy`        |
+   | Category                 | **Lifestyle** (or **Sports** if it is in the list)                                                |
+
+   Click **Save changes**. Facebook opens both URLs to check them, so wait until the site's HTTPS certificate works
+   (**Enforce HTTPS** can be ticked in GitHub Pages) before you save them.
+5. Switch **App Mode** at the top from **Development** to **Live**, then copy the App ID and App secret into
+   Supabase → **Facebook**.
 
 > Supabase links identities that share the same verified email, so one person who signs in with Google and then
 > with GitHub stays one member. If a provider does create a second account, the database approves it automatically
@@ -87,9 +98,11 @@ Enable each provider under **Authentication → Sign In / Providers** and paste 
    git push -u origin main
    ```
 2. **Settings → Secrets and variables → Actions → Variables** (these are variables, not secrets):
+
    - `PUBLIC_SUPABASE_URL` = `https://<ref>.supabase.co`
    - `PUBLIC_SUPABASE_ANON_KEY` = the anon / publishable key
 3. **Settings → Pages**:
+
    - Source: **GitHub Actions**.
    - Custom domain: `wsa-reservation.mteke.com`. The repository already contains `public/CNAME`.
    - Turn on **Enforce HTTPS** once the certificate has been issued.
@@ -100,8 +113,8 @@ Enable each provider under **Authentication → Sign In / Providers** and paste 
 
 At the DNS provider for `mteke.com`, add:
 
-| Type  | Name              | Value                 |
-| ----- | ----------------- | --------------------- |
+| Type  | Name                | Value                   |
+| ----- | ------------------- | ----------------------- |
 | CNAME | `wsa-reservation` | `melihteke.github.io` |
 
 Optionally, verify the domain under GitHub → **Settings → Pages → Verified domains** to protect it against takeover.
